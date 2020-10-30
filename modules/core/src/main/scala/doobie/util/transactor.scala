@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext
 
 object transactor  {
 
-  import doobie.free.connection.SyncMonadCancelConnectionIO
+  import doobie.free.implicits._
 
   /** @group Type Aliases */
   type Interpreter[M[_]] = ConnectionOp ~> Kleisli[M, Connection, *]

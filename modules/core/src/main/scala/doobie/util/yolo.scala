@@ -23,7 +23,7 @@ import scala.Predef._
 
 object yolo {
 
-  import doobie.free.connection.SyncMonadCancelConnectionIO
+  import doobie.free.implicits._
 
   class Yolo[M[_]](xa: Transactor[M])(implicit ev: MonadCancel[M, Throwable]) {
 
