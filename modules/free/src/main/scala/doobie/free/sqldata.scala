@@ -139,17 +139,14 @@ object sqldata { module =>
   def writeSQL(a: SQLOutput): SQLDataIO[Unit] = FF.liftF(WriteSQL(a))
 
   // Typeclass instances for SQLDataIO
-  implicit val SyncMonadCancelSQLDataIO: Sync[SQLDataIO] with MonadCancel[SQLDataIO, Throwable] =
-    new Sync[SQLDataIO] with MonadCancel[SQLDataIO, Throwable] {
+  implicit val SyncMonadCancelSQLDataIO: MonadCancel[SQLDataIO, Throwable] =
+    new MonadCancel[SQLDataIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[SQLDataOp]
       override def pure[A](x: A): SQLDataIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: SQLDataIO[A])(f: A => SQLDataIO[B]): SQLDataIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => SQLDataIO[Either[A, B]]): SQLDataIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): SQLDataIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: SQLDataIO[A])(f: Throwable => SQLDataIO[A]): SQLDataIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: SQLDataIO[FiniteDuration] = module.monotonic
-      override def realTime: SQLDataIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): SQLDataIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: SQLDataIO[A])(fb: SQLDataIO[B]): SQLDataIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[SQLDataIO] => SQLDataIO[A]): SQLDataIO[A] = module.uncancelable(body)
       override def canceled: SQLDataIO[Unit] = module.canceled

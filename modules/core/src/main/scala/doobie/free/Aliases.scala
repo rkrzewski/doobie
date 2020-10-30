@@ -4,7 +4,7 @@
 
 package doobie.free
 
-import cats.effect.kernel.{ Sync, MonadCancel }
+import cats.effect.kernel.MonadCancel
 
 trait Types {
   /** @group Type Aliases - Free API */ type BlobIO[A]              = blob.BlobIO[A]
@@ -42,46 +42,46 @@ trait Modules {
 
 trait Instances {
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelBlobIO: Sync[BlobIO] with MonadCancel[BlobIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelBlobIO: MonadCancel[BlobIO, Throwable] =
     blob.SyncMonadCancelBlobIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelCallableStatementIO: Sync[CallableStatementIO] with MonadCancel[CallableStatementIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelCallableStatementIO: MonadCancel[CallableStatementIO, Throwable] =
     callablestatement.SyncMonadCancelCallableStatementIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelClobIO: Sync[ClobIO] with MonadCancel[ClobIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelClobIO: MonadCancel[ClobIO, Throwable] =
     clob.SyncMonadCancelClobIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelConnectionIO: Sync[ConnectionIO] with MonadCancel[ConnectionIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelConnectionIO: MonadCancel[ConnectionIO, Throwable] =
     connection.SyncMonadCancelConnectionIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelDatabaseMetaDataIO: Sync[DatabaseMetaDataIO] with MonadCancel[DatabaseMetaDataIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelDatabaseMetaDataIO: MonadCancel[DatabaseMetaDataIO, Throwable] =
     databasemetadata.SyncMonadCancelDatabaseMetaDataIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelDriverIO: Sync[DriverIO] with MonadCancel[DriverIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelDriverIO: MonadCancel[DriverIO, Throwable] =
     driver.SyncMonadCancelDriverIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelNClobIO: Sync[NClobIO] with MonadCancel[NClobIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelNClobIO: MonadCancel[NClobIO, Throwable] =
     nclob.SyncMonadCancelNClobIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelPreparedStatementIO: Sync[PreparedStatementIO] with MonadCancel[PreparedStatementIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelPreparedStatementIO: MonadCancel[PreparedStatementIO, Throwable] =
     preparedstatement.SyncMonadCancelPreparedStatementIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelRefIO: Sync[RefIO] with MonadCancel[RefIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelRefIO: MonadCancel[RefIO, Throwable] =
     ref.SyncMonadCancelRefIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelResultSetIO: Sync[ResultSetIO] with MonadCancel[ResultSetIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelResultSetIO: MonadCancel[ResultSetIO, Throwable] =
     resultset.SyncMonadCancelResultSetIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLDataIO: Sync[SQLDataIO] with MonadCancel[SQLDataIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLDataIO: MonadCancel[SQLDataIO, Throwable] =
     sqldata.SyncMonadCancelSQLDataIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLInputIO: Sync[SQLInputIO] with MonadCancel[SQLInputIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLInputIO: MonadCancel[SQLInputIO, Throwable] =
     sqlinput.SyncMonadCancelSQLInputIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLOutputIO: Sync[SQLOutputIO] with MonadCancel[SQLOutputIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelSQLOutputIO: MonadCancel[SQLOutputIO, Throwable] =
     sqloutput.SyncMonadCancelSQLOutputIO
 
-  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelStatementIO: Sync[StatementIO] with MonadCancel[StatementIO, Throwable] =
+  /** @group Typeclass Instances */  implicit lazy val SyncMonadCancelStatementIO: MonadCancel[StatementIO, Throwable] =
     statement.SyncMonadCancelStatementIO
 
 }

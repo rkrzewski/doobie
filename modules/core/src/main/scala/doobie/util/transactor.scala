@@ -101,7 +101,7 @@ object transactor  {
     def strategy: Strategy
 
     /** Construct a [[Yolo]] for REPL experimentation. */
-    def yolo(implicit ev: MonadCancel[M, Throwable]): Yolo[M] = new Yolo(this)
+    def yolo(implicit ev: Async[M]): Yolo[M] = new Yolo(this)
 
     /**
      * Construct a program to perform arbitrary configuration on the kernel value (changing the

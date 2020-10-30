@@ -386,17 +386,14 @@ object statement { module =>
   def unwrap[T](a: Class[T]): StatementIO[T] = FF.liftF(Unwrap(a))
 
   // Typeclass instances for StatementIO
-  implicit val SyncMonadCancelStatementIO: Sync[StatementIO] with MonadCancel[StatementIO, Throwable] =
-    new Sync[StatementIO] with MonadCancel[StatementIO, Throwable] {
+  implicit val SyncMonadCancelStatementIO: MonadCancel[StatementIO, Throwable] =
+    new MonadCancel[StatementIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[StatementOp]
       override def pure[A](x: A): StatementIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: StatementIO[A])(f: A => StatementIO[B]): StatementIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => StatementIO[Either[A, B]]): StatementIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): StatementIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: StatementIO[A])(f: Throwable => StatementIO[A]): StatementIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: StatementIO[FiniteDuration] = module.monotonic
-      override def realTime: StatementIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): StatementIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: StatementIO[A])(fb: StatementIO[B]): StatementIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[StatementIO] => StatementIO[A]): StatementIO[A] = module.uncancelable(body)
       override def canceled: StatementIO[Unit] = module.canceled

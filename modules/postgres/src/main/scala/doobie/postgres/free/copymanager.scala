@@ -174,17 +174,14 @@ object copymanager { module =>
   def copyOut(a: String, b: Writer): CopyManagerIO[Long] = FF.liftF(CopyOut2(a, b))
 
   // Typeclass instances for CopyManagerIO
-  implicit val SyncMonadCancelCopyManagerIO: Sync[CopyManagerIO] with MonadCancel[CopyManagerIO, Throwable] =
-    new Sync[CopyManagerIO] with MonadCancel[CopyManagerIO, Throwable] {
+  implicit val SyncMonadCancelCopyManagerIO: MonadCancel[CopyManagerIO, Throwable] =
+    new MonadCancel[CopyManagerIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[CopyManagerOp]
       override def pure[A](x: A): CopyManagerIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: CopyManagerIO[A])(f: A => CopyManagerIO[B]): CopyManagerIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => CopyManagerIO[Either[A, B]]): CopyManagerIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): CopyManagerIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: CopyManagerIO[A])(f: Throwable => CopyManagerIO[A]): CopyManagerIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: CopyManagerIO[FiniteDuration] = module.monotonic
-      override def realTime: CopyManagerIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): CopyManagerIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: CopyManagerIO[A])(fb: CopyManagerIO[B]): CopyManagerIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[CopyManagerIO] => CopyManagerIO[A]): CopyManagerIO[A] = module.uncancelable(body)
       override def canceled: CopyManagerIO[Unit] = module.canceled

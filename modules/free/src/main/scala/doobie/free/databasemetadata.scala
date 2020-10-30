@@ -1016,17 +1016,14 @@ object databasemetadata { module =>
   val usesLocalFiles: DatabaseMetaDataIO[Boolean] = FF.liftF(UsesLocalFiles)
 
   // Typeclass instances for DatabaseMetaDataIO
-  implicit val SyncMonadCancelDatabaseMetaDataIO: Sync[DatabaseMetaDataIO] with MonadCancel[DatabaseMetaDataIO, Throwable] =
-    new Sync[DatabaseMetaDataIO] with MonadCancel[DatabaseMetaDataIO, Throwable] {
+  implicit val SyncMonadCancelDatabaseMetaDataIO: MonadCancel[DatabaseMetaDataIO, Throwable] =
+    new MonadCancel[DatabaseMetaDataIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[DatabaseMetaDataOp]
       override def pure[A](x: A): DatabaseMetaDataIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: DatabaseMetaDataIO[A])(f: A => DatabaseMetaDataIO[B]): DatabaseMetaDataIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => DatabaseMetaDataIO[Either[A, B]]): DatabaseMetaDataIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): DatabaseMetaDataIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: DatabaseMetaDataIO[A])(f: Throwable => DatabaseMetaDataIO[A]): DatabaseMetaDataIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: DatabaseMetaDataIO[FiniteDuration] = module.monotonic
-      override def realTime: DatabaseMetaDataIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): DatabaseMetaDataIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: DatabaseMetaDataIO[A])(fb: DatabaseMetaDataIO[B]): DatabaseMetaDataIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[DatabaseMetaDataIO] => DatabaseMetaDataIO[A]): DatabaseMetaDataIO[A] = module.uncancelable(body)
       override def canceled: DatabaseMetaDataIO[Unit] = module.canceled

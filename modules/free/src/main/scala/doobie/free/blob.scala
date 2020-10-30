@@ -178,17 +178,14 @@ object blob { module =>
   def truncate(a: Long): BlobIO[Unit] = FF.liftF(Truncate(a))
 
   // Typeclass instances for BlobIO
-  implicit val SyncMonadCancelBlobIO: Sync[BlobIO] with MonadCancel[BlobIO, Throwable] =
-    new Sync[BlobIO] with MonadCancel[BlobIO, Throwable] {
+  implicit val SyncMonadCancelBlobIO: MonadCancel[BlobIO, Throwable] =
+    new MonadCancel[BlobIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[BlobOp]
       override def pure[A](x: A): BlobIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: BlobIO[A])(f: A => BlobIO[B]): BlobIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => BlobIO[Either[A, B]]): BlobIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): BlobIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: BlobIO[A])(f: Throwable => BlobIO[A]): BlobIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: BlobIO[FiniteDuration] = module.monotonic
-      override def realTime: BlobIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): BlobIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: BlobIO[A])(fb: BlobIO[B]): BlobIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[BlobIO] => BlobIO[A]): BlobIO[A] = module.uncancelable(body)
       override def canceled: BlobIO[Unit] = module.canceled

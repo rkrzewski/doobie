@@ -432,17 +432,14 @@ object connection { module =>
     )
 
   // Typeclass instances for ConnectionIO
-  implicit val SyncMonadCancelConnectionIO: Sync[ConnectionIO] with MonadCancel[ConnectionIO, Throwable] =
-    new Sync[ConnectionIO] with MonadCancel[ConnectionIO, Throwable] {
+  implicit val SyncMonadCancelConnectionIO: MonadCancel[ConnectionIO, Throwable] =
+    new MonadCancel[ConnectionIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[ConnectionOp]
       override def pure[A](x: A): ConnectionIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: ConnectionIO[A])(f: A => ConnectionIO[B]): ConnectionIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => ConnectionIO[Either[A, B]]): ConnectionIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): ConnectionIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: ConnectionIO[A])(f: Throwable => ConnectionIO[A]): ConnectionIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: ConnectionIO[FiniteDuration] = module.monotonic
-      override def realTime: ConnectionIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): ConnectionIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: ConnectionIO[A])(fb: ConnectionIO[B]): ConnectionIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[ConnectionIO] => ConnectionIO[A]): ConnectionIO[A] = module.uncancelable(body)
       override def canceled: ConnectionIO[Unit] = module.canceled

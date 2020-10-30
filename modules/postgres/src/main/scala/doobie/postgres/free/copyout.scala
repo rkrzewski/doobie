@@ -171,17 +171,14 @@ object copyout { module =>
   }
 
   // Typeclass instances for CopyOutIO
-  implicit val SyncMonadCancelCopyOutIO: Sync[CopyOutIO] with MonadCancel[CopyOutIO, Throwable] =
-    new Sync[CopyOutIO] with MonadCancel[CopyOutIO, Throwable] {
+  implicit val SyncMonadCancelCopyOutIO: MonadCancel[CopyOutIO, Throwable] =
+    new MonadCancel[CopyOutIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[CopyOutOp]
       override def pure[A](x: A): CopyOutIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: CopyOutIO[A])(f: A => CopyOutIO[B]): CopyOutIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => CopyOutIO[Either[A, B]]): CopyOutIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): CopyOutIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: CopyOutIO[A])(f: Throwable => CopyOutIO[A]): CopyOutIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: CopyOutIO[FiniteDuration] = module.monotonic
-      override def realTime: CopyOutIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): CopyOutIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: CopyOutIO[A])(fb: CopyOutIO[B]): CopyOutIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[CopyOutIO] => CopyOutIO[A]): CopyOutIO[A] = module.uncancelable(body)
       override def canceled: CopyOutIO[Unit] = module.canceled

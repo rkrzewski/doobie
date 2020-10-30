@@ -1300,17 +1300,14 @@ object callablestatement { module =>
   val wasNull: CallableStatementIO[Boolean] = FF.liftF(WasNull)
 
   // Typeclass instances for CallableStatementIO
-  implicit val SyncMonadCancelCallableStatementIO: Sync[CallableStatementIO] with MonadCancel[CallableStatementIO, Throwable] =
-    new Sync[CallableStatementIO] with MonadCancel[CallableStatementIO, Throwable] {
+  implicit val SyncMonadCancelCallableStatementIO: MonadCancel[CallableStatementIO, Throwable] =
+    new MonadCancel[CallableStatementIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[CallableStatementOp]
       override def pure[A](x: A): CallableStatementIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: CallableStatementIO[A])(f: A => CallableStatementIO[B]): CallableStatementIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => CallableStatementIO[Either[A, B]]): CallableStatementIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): CallableStatementIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: CallableStatementIO[A])(f: Throwable => CallableStatementIO[A]): CallableStatementIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: CallableStatementIO[FiniteDuration] = module.monotonic
-      override def realTime: CallableStatementIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): CallableStatementIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: CallableStatementIO[A])(fb: CallableStatementIO[B]): CallableStatementIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[CallableStatementIO] => CallableStatementIO[A]): CallableStatementIO[A] = module.uncancelable(body)
       override def canceled: CallableStatementIO[Unit] = module.canceled

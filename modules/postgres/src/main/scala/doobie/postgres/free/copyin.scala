@@ -166,17 +166,14 @@ object copyin { module =>
   def writeToCopy(a: Array[Byte], b: Int, c: Int): CopyInIO[Unit] = FF.liftF(WriteToCopy(a, b, c))
 
   // Typeclass instances for CopyInIO
-  implicit val SyncMonadCancelCopyInIO: Sync[CopyInIO] with MonadCancel[CopyInIO, Throwable] =
-    new Sync[CopyInIO] with MonadCancel[CopyInIO, Throwable] {
+  implicit val SyncMonadCancelCopyInIO: MonadCancel[CopyInIO, Throwable] =
+    new MonadCancel[CopyInIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[CopyInOp]
       override def pure[A](x: A): CopyInIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: CopyInIO[A])(f: A => CopyInIO[B]): CopyInIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => CopyInIO[Either[A, B]]): CopyInIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): CopyInIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: CopyInIO[A])(f: Throwable => CopyInIO[A]): CopyInIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: CopyInIO[FiniteDuration] = module.monotonic
-      override def realTime: CopyInIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): CopyInIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: CopyInIO[A])(fb: CopyInIO[B]): CopyInIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[CopyInIO] => CopyInIO[A]): CopyInIO[A] = module.uncancelable(body)
       override def canceled: CopyInIO[Unit] = module.canceled

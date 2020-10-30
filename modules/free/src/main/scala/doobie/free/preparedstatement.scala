@@ -694,17 +694,14 @@ object preparedstatement { module =>
   def unwrap[T](a: Class[T]): PreparedStatementIO[T] = FF.liftF(Unwrap(a))
 
   // Typeclass instances for PreparedStatementIO
-  implicit val SyncMonadCancelPreparedStatementIO: Sync[PreparedStatementIO] with MonadCancel[PreparedStatementIO, Throwable] =
-    new Sync[PreparedStatementIO] with MonadCancel[PreparedStatementIO, Throwable] {
+  implicit val SyncMonadCancelPreparedStatementIO: MonadCancel[PreparedStatementIO, Throwable] =
+    new MonadCancel[PreparedStatementIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[PreparedStatementOp]
       override def pure[A](x: A): PreparedStatementIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: PreparedStatementIO[A])(f: A => PreparedStatementIO[B]): PreparedStatementIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => PreparedStatementIO[Either[A, B]]): PreparedStatementIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): PreparedStatementIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: PreparedStatementIO[A])(f: Throwable => PreparedStatementIO[A]): PreparedStatementIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: PreparedStatementIO[FiniteDuration] = module.monotonic
-      override def realTime: PreparedStatementIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): PreparedStatementIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: PreparedStatementIO[A])(fb: PreparedStatementIO[B]): PreparedStatementIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[PreparedStatementIO] => PreparedStatementIO[A]): PreparedStatementIO[A] = module.uncancelable(body)
       override def canceled: PreparedStatementIO[Unit] = module.canceled

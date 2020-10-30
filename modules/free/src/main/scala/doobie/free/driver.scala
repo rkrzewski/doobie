@@ -161,17 +161,14 @@ object driver { module =>
   val jdbcCompliant: DriverIO[Boolean] = FF.liftF(JdbcCompliant)
 
   // Typeclass instances for DriverIO
-  implicit val SyncMonadCancelDriverIO: Sync[DriverIO] with MonadCancel[DriverIO, Throwable] =
-    new Sync[DriverIO] with MonadCancel[DriverIO, Throwable] {
+  implicit val SyncMonadCancelDriverIO: MonadCancel[DriverIO, Throwable] =
+    new MonadCancel[DriverIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[DriverOp]
       override def pure[A](x: A): DriverIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: DriverIO[A])(f: A => DriverIO[B]): DriverIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => DriverIO[Either[A, B]]): DriverIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): DriverIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: DriverIO[A])(f: Throwable => DriverIO[A]): DriverIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: DriverIO[FiniteDuration] = module.monotonic
-      override def realTime: DriverIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): DriverIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: DriverIO[A])(fb: DriverIO[B]): DriverIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[DriverIO] => DriverIO[A]): DriverIO[A] = module.uncancelable(body)
       override def canceled: DriverIO[Unit] = module.canceled

@@ -42,11 +42,9 @@ import doobie.postgres.free.pgconnection.{ PGConnectionIO, PGConnectionOp }
 object KleisliInterpreter {
 
   def apply[M[_]](
-    implicit sm: Sync[M],
-    mcm: MonadCancel[M, Throwable]
+    implicit mcm: MonadCancel[M, Throwable]
   ): KleisliInterpreter[M] =
     new KleisliInterpreter[M] {
-      val syncM = sm
       val monadCancelM = mcm
     }
 

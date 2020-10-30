@@ -237,17 +237,14 @@ object pgconnection { module =>
   def setPrepareThreshold(a: Int): PGConnectionIO[Unit] = FF.liftF(SetPrepareThreshold(a))
 
   // Typeclass instances for PGConnectionIO
-  implicit val SyncMonadCancelPGConnectionIO: Sync[PGConnectionIO] with MonadCancel[PGConnectionIO, Throwable] =
-    new Sync[PGConnectionIO] with MonadCancel[PGConnectionIO, Throwable] {
+  implicit val SyncMonadCancelPGConnectionIO: MonadCancel[PGConnectionIO, Throwable] =
+    new MonadCancel[PGConnectionIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[PGConnectionOp]
       override def pure[A](x: A): PGConnectionIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: PGConnectionIO[A])(f: A => PGConnectionIO[B]): PGConnectionIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => PGConnectionIO[Either[A, B]]): PGConnectionIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): PGConnectionIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: PGConnectionIO[A])(f: Throwable => PGConnectionIO[A]): PGConnectionIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: PGConnectionIO[FiniteDuration] = module.monotonic
-      override def realTime: PGConnectionIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): PGConnectionIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: PGConnectionIO[A])(fb: PGConnectionIO[B]): PGConnectionIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[PGConnectionIO] => PGConnectionIO[A]): PGConnectionIO[A] = module.uncancelable(body)
       override def canceled: PGConnectionIO[Unit] = module.canceled

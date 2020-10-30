@@ -1118,17 +1118,14 @@ object resultset { module =>
   val wasNull: ResultSetIO[Boolean] = FF.liftF(WasNull)
 
   // Typeclass instances for ResultSetIO
-  implicit val SyncMonadCancelResultSetIO: Sync[ResultSetIO] with MonadCancel[ResultSetIO, Throwable] =
-    new Sync[ResultSetIO] with MonadCancel[ResultSetIO, Throwable] {
+  implicit val SyncMonadCancelResultSetIO: MonadCancel[ResultSetIO, Throwable] =
+    new MonadCancel[ResultSetIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[ResultSetOp]
       override def pure[A](x: A): ResultSetIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: ResultSetIO[A])(f: A => ResultSetIO[B]): ResultSetIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => ResultSetIO[Either[A, B]]): ResultSetIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): ResultSetIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: ResultSetIO[A])(f: Throwable => ResultSetIO[A]): ResultSetIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: ResultSetIO[FiniteDuration] = module.monotonic
-      override def realTime: ResultSetIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): ResultSetIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: ResultSetIO[A])(fb: ResultSetIO[B]): ResultSetIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[ResultSetIO] => ResultSetIO[A]): ResultSetIO[A] = module.uncancelable(body)
       override def canceled: ResultSetIO[Unit] = module.canceled

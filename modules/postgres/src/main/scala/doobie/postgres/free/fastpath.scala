@@ -179,17 +179,14 @@ object fastpath { module =>
   def getOID(a: String, b: Array[FastpathArg]): FastpathIO[Long] = FF.liftF(GetOID(a, b))
 
   // Typeclass instances for FastpathIO
-  implicit val SyncMonadCancelFastpathIO: Sync[FastpathIO] with MonadCancel[FastpathIO, Throwable] =
-    new Sync[FastpathIO] with MonadCancel[FastpathIO, Throwable] {
+  implicit val SyncMonadCancelFastpathIO: MonadCancel[FastpathIO, Throwable] =
+    new MonadCancel[FastpathIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[FastpathOp]
       override def pure[A](x: A): FastpathIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: FastpathIO[A])(f: A => FastpathIO[B]): FastpathIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => FastpathIO[Either[A, B]]): FastpathIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): FastpathIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: FastpathIO[A])(f: Throwable => FastpathIO[A]): FastpathIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: FastpathIO[FiniteDuration] = module.monotonic
-      override def realTime: FastpathIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): FastpathIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: FastpathIO[A])(fb: FastpathIO[B]): FastpathIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[FastpathIO] => FastpathIO[A]): FastpathIO[A] = module.uncancelable(body)
       override def canceled: FastpathIO[Unit] = module.canceled

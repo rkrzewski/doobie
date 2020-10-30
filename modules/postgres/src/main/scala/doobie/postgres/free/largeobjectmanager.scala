@@ -202,17 +202,14 @@ object largeobjectmanager { module =>
   def unlink(a: Long): LargeObjectManagerIO[Unit] = FF.liftF(Unlink1(a))
 
   // Typeclass instances for LargeObjectManagerIO
-  implicit val SyncMonadCancelLargeObjectManagerIO: Sync[LargeObjectManagerIO] with MonadCancel[LargeObjectManagerIO, Throwable] =
-    new Sync[LargeObjectManagerIO] with MonadCancel[LargeObjectManagerIO, Throwable] {
+  implicit val SyncMonadCancelLargeObjectManagerIO: MonadCancel[LargeObjectManagerIO, Throwable] =
+    new MonadCancel[LargeObjectManagerIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[LargeObjectManagerOp]
       override def pure[A](x: A): LargeObjectManagerIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: LargeObjectManagerIO[A])(f: A => LargeObjectManagerIO[B]): LargeObjectManagerIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => LargeObjectManagerIO[Either[A, B]]): LargeObjectManagerIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): LargeObjectManagerIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: LargeObjectManagerIO[A])(f: Throwable => LargeObjectManagerIO[A]): LargeObjectManagerIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: LargeObjectManagerIO[FiniteDuration] = module.monotonic
-      override def realTime: LargeObjectManagerIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): LargeObjectManagerIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: LargeObjectManagerIO[A])(fb: LargeObjectManagerIO[B]): LargeObjectManagerIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[LargeObjectManagerIO] => LargeObjectManagerIO[A]): LargeObjectManagerIO[A] = module.uncancelable(body)
       override def canceled: LargeObjectManagerIO[Unit] = module.canceled

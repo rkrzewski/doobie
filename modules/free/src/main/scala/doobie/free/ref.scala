@@ -143,17 +143,14 @@ object ref { module =>
   def setObject(a: AnyRef): RefIO[Unit] = FF.liftF(SetObject(a))
 
   // Typeclass instances for RefIO
-  implicit val SyncMonadCancelRefIO: Sync[RefIO] with MonadCancel[RefIO, Throwable] =
-    new Sync[RefIO] with MonadCancel[RefIO, Throwable] {
+  implicit val SyncMonadCancelRefIO: MonadCancel[RefIO, Throwable] =
+    new MonadCancel[RefIO, Throwable] {
       val monad = FF.catsFreeMonadForFree[RefOp]
       override def pure[A](x: A): RefIO[A] = monad.pure(x)
       override def flatMap[A, B](fa: RefIO[A])(f: A => RefIO[B]): RefIO[B] = monad.flatMap(fa)(f)
       override def tailRecM[A, B](a: A)(f: A => RefIO[Either[A, B]]): RefIO[B] = monad.tailRecM(a)(f)
       override def raiseError[A](e: Throwable): RefIO[A] = module.raiseError(e)
       override def handleErrorWith[A](fa: RefIO[A])(f: Throwable => RefIO[A]): RefIO[A] = module.handleErrorWith(fa)(f)
-      override def monotonic: RefIO[FiniteDuration] = module.monotonic
-      override def realTime: RefIO[FiniteDuration] = module.realtime
-      override def suspend[A](hint: Sync.Type)(thunk: => A): RefIO[A] = module.suspend(hint)(thunk)
       override def forceR[A, B](fa: RefIO[A])(fb: RefIO[B]): RefIO[B] = module.forceR(fa)(fb)
       override def uncancelable[A](body: Poll[RefIO] => RefIO[A]): RefIO[A] = module.uncancelable(body)
       override def canceled: RefIO[Unit] = module.canceled

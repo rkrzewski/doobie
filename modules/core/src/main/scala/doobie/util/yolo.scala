@@ -6,12 +6,13 @@ package doobie.util
 
 import scala.reflect.runtime.universe.TypeTag
 
-import cats.effect.kernel.MonadCancel
+import cats.effect.kernel.Async
 import cats.instances.int._
 import cats.instances.string._
 import cats.syntax.show._
 import doobie.free.connection.{ ConnectionIO, delay }
 import doobie.syntax.connectionio._
+import doobie.syntax.stream._
 import doobie.util.query._
 import doobie.util.update._
 import doobie.util.testing._
@@ -23,9 +24,9 @@ import scala.Predef._
 
 object yolo {
 
-  import doobie.free.implicits._
+  // import doobie.free.implicits._
 
-  class Yolo[M[_]](xa: Transactor[M])(implicit ev: MonadCancel[M, Throwable]) {
+  class Yolo[M[_]](xa: Transactor[M])(implicit ev: Async[M]) {
 
     private def out(s: String, colors: Colors): ConnectionIO[Unit] =
       delay(Console.println(show"${colors.BLUE}  $s${colors.RESET}"))
@@ -33,13 +34,15 @@ object yolo {
     implicit class Query0YoloOps[A: TypeTag](q: Query0[A]) {
 
       @SuppressWarnings(Array("org.wartremover.warts.ToString"))
-      def quick(implicit colors: Colors = Colors.Ansi): M[Unit] =
+      def quick(implicit colors: Colors = Colors.Ansi): M[Unit] = {
         q.stream
          .map(_.toString)
          .evalMap(out(_, colors))
+         .transact(xa)
          .compile
          .drain
-         .transact(xa)
+        ev.unit
+      }      
 
       def check(implicit colors: Colors = Colors.Ansi): M[Unit] =
         checkImpl(Analyzable.unpack(q), colors)
@@ -91,7 +94,7 @@ object yolo {
     implicit class StreamYoloOps[A](pa: Stream[ConnectionIO, A]) {
       @SuppressWarnings(Array("org.wartremover.warts.ToString"))
       def quick(implicit colors: Colors = Colors.Ansi): M[Unit] =
-        pa.evalMap(a => out(a.toString, colors)).compile.drain.transact(xa)
+        pa.evalMap(a => out(a.toString, colors)).transact(xa).compile.drain
     }
 
     private def checkImpl(args: AnalysisArgs, colors: Colors): M[Unit] =
